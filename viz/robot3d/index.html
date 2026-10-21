@@ -1,0 +1,450 @@
+<title>Quadruped Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F1EC;--panel:#FFFFFF;--panel-2:#FAFAF7;--ink:#151B22;--ink-2:#4A5560;
+  --muted:#6E7A85;--rule:#DFDDD4;--rule-2:#ECEAE3;--brass:#A8762A;--brass-soft:#C9973F;
+  --ok:#3F7A4B;--warn:#9A6B18;
+  --scene:#EDECE6;--shadow:0 1px 2px rgba(20,26,32,.06),0 8px 24px -12px rgba(20,26,32,.16);
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0E1319;--panel:#161C24;--panel-2:#1B222B;--ink:#DEE5EA;--ink-2:#A3AFB9;
+  --muted:#77848F;--rule:#28313C;--rule-2:#1F2731;--brass:#D8A54B;--brass-soft:#C9973F;
+  --ok:#6FBF80;--warn:#D8A54B;
+  --scene:#10161D;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px -14px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#0E1319;--panel:#161C24;--panel-2:#1B222B;--ink:#DEE5EA;--ink-2:#A3AFB9;
+  --muted:#77848F;--rule:#28313C;--rule-2:#1F2731;--brass:#D8A54B;--brass-soft:#C9973F;
+  --ok:#6FBF80;--warn:#D8A54B;
+  --scene:#10161D;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px -14px rgba(0,0,0,.6);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);margin:0;
+  padding-block:26px 38px;padding-inline:16px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{border-bottom:1px solid var(--rule);padding-bottom:13px}
+h1{font-size:clamp(21px,3.2vw,28px);font-weight:600;margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;max-width:64ch;margin:5px 0 0}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+.viewport{position:relative;background:var(--scene);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:4/3}
+#gl{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+#gl.drag{cursor:grabbing}
+.hint{position:absolute;bottom:9px;right:12px;font-family:var(--mono);font-size:10.5px;
+  color:var(--muted);pointer-events:none;opacity:.85}
+.views{position:absolute;top:9px;left:10px;display:flex;gap:5px}
+.views button{font-family:var(--mono);font-size:10.5px;background:var(--panel);
+  border:1px solid var(--rule);border-radius:3px;color:var(--ink-2);padding:4px 8px;cursor:pointer}
+.views button:hover{border-color:var(--brass-soft);color:var(--ink)}
+.views button:focus-visible{outline:2px solid var(--brass-soft);outline-offset:1px}
+.loading[hidden]{display:none}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:12px;color:var(--muted)}
+.side{display:flex;flex-direction:column;gap:11px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:13px}
+.card h2{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  margin:0 0 9px;font-weight:600;font-family:var(--mono)}
+.layer{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;
+  color:var(--ink-2);padding:3px 0;cursor:pointer;user-select:none}
+.layer input{accent-color:var(--brass);margin:0;cursor:pointer}
+.sw{width:11px;height:11px;border-radius:2px;flex:none}
+.layer .n{margin-left:auto;color:var(--muted);font-size:11px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;
+  font-variant-numeric:tabular-nums}
+td{padding:3px 0;color:var(--ink-2)}
+td:last-child{text-align:right;color:var(--ink)}
+td .pass{color:var(--ok)}
+td .note{color:var(--warn)}
+.btn{font-family:var(--mono);font-size:11.5px;background:var(--panel);border:1px solid var(--rule);
+  border-radius:3px;color:var(--ink);padding:7px 11px;cursor:pointer;width:100%}
+.btn:hover{border-color:var(--brass-soft)}
+.btn:focus-visible{outline:2px solid var(--brass-soft);outline-offset:2px}
+footer{border-top:1px solid var(--rule);padding-top:13px;font-size:12px;color:var(--muted);
+  max-width:80ch}
+footer p{margin:0 0 7px}
+footer p:last-child{margin-bottom:0}
+code{font-family:var(--mono);font-size:.93em;color:var(--ink-2)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Quadruped Assembly</h1>
+    <p class="sub">Direct drive, three servos per leg, standing in the pose the
+      IK actually solves for. Every part sits where <code>robot.scad</code> puts
+      it &mdash; the geometry below is the posed assembly itself, not parts
+      re-placed by the browser.</p>
+  </header>
+
+  <div class="stage">
+    <div class="viewport">
+      <canvas id="gl"></canvas>
+      <div class="loading" id="loading">loading geometry&hellip;</div>
+      <div class="views">
+        <button type="button" data-view="iso">iso</button>
+        <button type="button" data-view="front">front</button>
+        <button type="button" data-view="side">side</button>
+        <button type="button" data-view="top">top</button>
+      </div>
+      <div class="hint">drag &middot; scroll &middot; right-drag</div>
+    </div>
+    <div class="side">
+      <div class="card">
+        <h2>Layers</h2>
+        <div id="layers"></div>
+      </div>
+      <div class="card">
+        <h2>Checks</h2>
+        <table>
+          <tr><td>interference, 46 pairs</td><td><span class="pass">0 &times; 180 cases</span></td></tr>
+          <tr><td>legs checked</td><td>all four</td></tr>
+          <tr><td>roll travel</td><td>&plusmn;35&deg;</td></tr>
+          <tr><td>servo fits in</td><td><span class="pass">3 / 3</span></td></tr>
+          <tr><td>cable exits</td><td><span class="pass">3 / 3</span></td></tr>
+          <tr><td>horn screws reach</td><td><span class="pass">3 / 3</span></td></tr>
+          <tr><td>every joint fastened</td><td><span class="pass">yes</span></td></tr>
+          <tr><td>parts in one piece</td><td><span class="pass">13 / 13</span></td></tr>
+          <tr><td>tightest pivot gap</td><td>0.50 mm</td></tr>
+          <tr><td>thigh to roll casing</td><td>3.16 mm</td></tr>
+          <tr><td>servo pocket slack</td><td>0.7&ndash;1.2 mm</td></tr>
+          <tr><td>hip journal pressure</td><td>8.2 MPa</td></tr>
+          <tr><td>knee journal pressure</td><td>9.1 MPa</td></tr>
+          <tr><td>linkage ratio</td><td>1.000000000</td></tr>
+          <tr><td>dead-point margin</td><td>22.5&deg;</td></tr>
+          <tr><td>foot vs. solver</td><td>0.02 mm</td></tr>
+          <tr><td>leg plane</td><td>46.000 mm</td></tr>
+          <tr><td>weakest section</td><td>SF 2.0</td></tr>
+          <tr><td>shoulder arm, twist</td><td>SF 6.1</td></tr>
+          <tr><td>arm root (tongue), twist</td><td>SF 21.5</td></tr>
+          <tr><td>leg, body, gait, servo</td><td><span class="pass">all pass</span></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Geometry</h2>
+        <table>
+          <tr><td>thigh</td><td>110 mm</td></tr>
+          <tr><td>shank, to ball centre</td><td>130 mm</td></tr>
+          <tr><td>crank = rocker</td><td>15 mm</td></tr>
+          <tr><td>rod = crank axis&ndash;knee</td><td>46 mm</td></tr>
+          <tr><td>hip offset</td><td>46 mm</td></tr>
+          <tr><td>body, hip to hip</td><td>200 &times; 110 mm</td></tr>
+          <tr><td>stance</td><td>200 &times; 202 mm</td></tr>
+          <tr><td>ride height</td><td>186.5 mm</td></tr>
+          <tr><td>roll axis above plate</td><td>21 mm</td></tr>
+          <tr><td>chassis plate</td><td>8 mm</td></tr>
+          <tr><td>chassis, split</td><td>167 + 143 mm</td></tr>
+          <tr><td>cable clips</td><td>10, 5.2 mm bore</td></tr>
+          <tr><td>roof headroom</td><td>27 mm</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Mass</h2>
+        <table>
+          <tr><td>printed, PETG 50&thinsp;%</td><td>775 g</td></tr>
+          <tr><td>12 servos</td><td>720 g</td></tr>
+          <tr><td>battery</td><td>340 g</td></tr>
+          <tr><td>board, wiring, bolts</td><td>220 g</td></tr>
+          <tr><td><b>total</b></td><td><b>2.06 kg</b></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Worst-case torque</h2>
+        <table>
+          <tr><td>roll, walking</td><td>11.3 kg&middot;cm</td></tr>
+          <tr><td>hip, walking</td><td>12.4 kg&middot;cm</td></tr>
+          <tr><td>knee, walking</td><td>11.4 kg&middot;cm</td></tr>
+          <tr><td>peak, incl. landing</td><td>15.3 kg&middot;cm</td></tr>
+          <tr><td>RMS over a cycle</td><td>6.0 kg&middot;cm</td></tr>
+          <tr><td>DS3225 stall</td><td>25 kg&middot;cm</td></tr>
+          <tr><td><b>margin on stall</b></td><td><b>1.6&times;</b></td></tr>
+        </table>
+      </div>
+      <button class="btn" id="reset" type="button">Reset view</button>
+    </div>
+  </div>
+
+  <footer>
+    <p><b>Built against a servo in hand, not a datasheet.</b> Two things only a
+      real part could say, both found by sliding a DS3225MG into a printed
+      shoulder:</p>
+    <p><b>The cable leaves on the shaft's end.</b> The slot was drawn at the end
+      AWAY from the output shaft &mdash; the intuitive place, and wrong by
+      40&nbsp;mm. The lead had nowhere to go, and the filler behind it was solid
+      exactly where the wire wanted to be. It moved to the other end face, which
+      cost nothing: the mounting ears sit 11.65&nbsp;mm down the body and the
+      slot sits at 29&ndash;39, so it passes 18&nbsp;mm clear of the pads and
+      their inserts. The filler's own relief opened from 10&nbsp;&times;&nbsp;10
+      to 16&nbsp;&times;&nbsp;16 at the same time &mdash; the bracket only has to
+      let the lead through, but the filler is what it has to bend around, and the
+      filler carries no load so the room is free.</p>
+    <p><b>A standard-size servo is not one size.</b> Three listings for the same
+      25&nbsp;kg class measure 40.0&nbsp;&times;&nbsp;20.5&nbsp;&times;&nbsp;40.5,
+      40.5&nbsp;&times;&nbsp;20.2&nbsp;&times;&nbsp;40.3 and
+      40.0&nbsp;&times;&nbsp;20.0&nbsp;&times;&nbsp;40.5, and the DS3225MG drawing
+      gives 54.5 across the ears where this model said 54.0. Drawn to any one of
+      them the pocket comes out 0.1&nbsp;mm oversize for the others, which is
+      less than the printer manages &mdash; the servo simply will not go in. The
+      pockets now carry a fit allowance of their own, separate from the clearance
+      used for rotating joints, and the housings grew with it so the wall around
+      them stays at 3&nbsp;mm. Every one of those three servos drops in with
+      0.7&nbsp;mm or better.</p>
+    <p><b>Why a parallelogram.</b> Crank and rocker are the same length and the
+      rod equals the crank-axis-to-knee distance, so the rocker stays parallel to
+      the crank and the servo reads the knee angle directly &mdash; ratio exactly
+      1.0 at every position. A general four-bar does not do this: of 45 geometries
+      that covered the knee's range monotonically, the best fell to 0.12, which
+      turns 11&nbsp;kg&middot;cm at the knee into 93 at a 25&nbsp;kg&middot;cm
+      servo. The crank axis does not have to be the hip axis, only fixed to the
+      thigh &mdash; that is what makes the exact version package.</p>
+    <p><b>What it buys.</b> The knee servo moves off the knee and 46&nbsp;mm up
+      the thigh, cutting its share of the leg's swing inertia to a third.</p>
+    <p><b>No printed crank stops.</b> A parallelogram has a crossed twin on the
+      far side of a dead point, and the usual guard is a post the crank runs into
+      &mdash; but the crank shares the shank's plane and the shank folds through
+      it. The crank cannot reach a dead point under power: its travel stops
+      22.5&deg; short at both ends, held there by the servo's range and the IK's
+      joint limits.</p>
+    <p><b>The roll servo lies flat, and that one quarter turn fixed three
+      separate-looking faults.</b> A single 90&deg; rotation put the servo's
+      40&nbsp;mm length straight up, so every corner grew a 57&nbsp;mm tower with
+      the servo's bottom 4&nbsp;mm sunk into the plate. The thigh grazed that
+      tower at 26&deg; of roll; the sunk pocket broke out through the plate's
+      underside so you could see the filler from below; and only
+      1.0&nbsp;cm&sup3; of the four screw pads survived the clearance cuts. The
+      quarter turn lays the body along the body's own Y instead &mdash;
+      26&nbsp;mm tall, sitting ON the skin rather than in it. Roll goes back to
+      &plusmn;35&deg;, there is no floor to add and nothing to see, and the pads
+      come back. <code>HIP_Z</code> was derived from the servo lying flat all
+      along, so this is the geometry finally agreeing with the number the
+      kinematics were already using.</p>
+    <p><b>The pitch horn had nothing to bolt to.</b> Every journal here is a
+      printed collar turning in a printed bore, and one module drew them all as a
+      RING, bored to clear the servo horn. At the knee that is right, because the
+      M4 pin passes through. At the hip it was not: slice the thigh and there was
+      0.000&nbsp;cm&sup3; of material inside the horn's screw circle anywhere
+      between the plate and the servo's face. The horn hung 4&nbsp;mm off the
+      nearest plastic on four M3 screws spanning open air, carrying the whole leg
+      in bending on the screws alone. It is a solid disc now.</p>
+    <p><b>And the journals were too short, which nothing was checking.</b> A
+      servo's output shaft is built for torque, not bending; the journal takes the
+      bending instead, and the only thing that decides whether it can is how LONG
+      it is. The thickness audit is a printability floor &mdash; a 4&nbsp;mm
+      collar with a 5.7&nbsp;mm wall sails through it. Pressure goes as
+      <code>6M/(D&middot;L&sup2;)</code>, so it falls with the square of the
+      length: the hip went 46.9&nbsp;MPa at 4&nbsp;mm to 8.2 at 10, the knee 25.4
+      to 9.1 at 7. Past about 10&nbsp;MPa PETG cold flows under a standing load
+      and the joint grows play &mdash; a leg that wobbles before anything has
+      actually broken, which is the failure that does not look like one.</p>
+    <p><b>The arm's real load case is torsion.</b> It runs along Y, so a fore/aft
+      scuff at the foot puts that moment along its own axis: it does not bend, it
+      twists, and an open rectangle is poor in torsion. At
+      9&nbsp;&times;&nbsp;14 it was safety factor <b>1.4</b> &mdash; the weakest
+      thing on the robot while the bending table said the thigh was.</p>
+    <p>And the member carrying it was not the one being measured. The arm is two
+      pieces at right angles: the long run goes along Y, the TONGUE goes along X
+      out of the boss, and the tongue is the rooted end that carries everything.
+      Its section is the BAND it crosses in, not the rail's width &mdash; and
+      that band started 12&nbsp;mm off the axis to clear the roll servo, a real
+      constraint where the arm crosses the axis but not where the tongue is: the
+      servo's body ends 7&nbsp;mm out and the tongue starts at 11. Nothing was
+      there. Running it to the axis and 12&nbsp;mm past took the tongue from
+      10&nbsp;&times;&nbsp;22 to 34&nbsp;&times;&nbsp;24, and twisting it from SF
+      2.7 to <b>21.5</b>. It also put all four horn screws in solid material
+      landing on one flat face, where three of four had been breaking out through
+      a curved surface.</p>
+    <p><b>Three parts are handed.</b> The assembly mirrors each leg in Y for the
+      right-hand side, so a part serves both sides only if it has a mirror plane
+      of its own. Intersecting each with its own reflection: chassis, roof,
+      pushrod and filler are symmetric in Y and the shoulder in Z, so one print
+      each. Thigh, shank and crank have none and are 2&nbsp;+&nbsp;2. The shank
+      comes out 99.0&thinsp;% self-overlapping and the crank 95.2&thinsp;%, which
+      is the trap &mdash; they look symmetric. The shank's rocker lug sits at
+      LINK_PHI off the beam and the crank's hub is a D-flat cut by the rod's
+      sweep, and neither survives a reflection.</p>
+    <p><b>The chassis comes apart, because 280 mm does not fit on a 235 mm
+      bed.</b> Rotating does not help: for a rectangle on a rectangular bed,
+      axis-aligned is already the best fit. It is a halved lap at the waist
+      &mdash; 167 forward, 143 aft &mdash; six M3 through both, and two printed
+      arrowhead latches that click it home and hold it square while you get the
+      bolts in. Bending across the joint runs through 4&nbsp;mm rather than 8, so
+      2.6&nbsp;MPa becomes 10.4: safety factor 2.9. The latches are for assembly,
+      not for strength &mdash; PETG creeps, and a snap left to carry the spine's
+      bending on every step relaxes and lets go. The bolts are the joint.</p>
+    <p><b>Every joint has a fastener, and they are not all screws.</b> Servo
+      horns bolt to the part they drive with four M3 each, landing 1.5&nbsp;mm
+      into the horn's 2 &mdash; the horn is the only thread in that joint and the
+      servo's output boss is immediately behind it, so the usable window is
+      exactly 2&nbsp;mm wide and the three lengths differ (M3&times;40, 16 and
+      20). The linkage pivots are shoulder bolts: a plain 4&nbsp;mm shank longer
+      than the rod is thick, so the rod turns on the shank while the thread pulls
+      into its insert and the clamp load never reaches the rod. Nothing threads
+      into bare plastic anywhere &mdash; 56 M3 and 4 M4 brass heat-set inserts
+      take every thread, and the parts' pilot holes are drawn for a 4.6&nbsp;mm
+      OD insert, not a 4.0.</p>
+    <p>Interference is checked pairwise over 180 cases &mdash; four legs by
+      forty-five poses, three hip angles by five knee angles by roll at
+      &minus;35, 0 and +35&deg;. Not just at standing, and not just on one leg.
+      Checking only the front-left proved nothing about the other three and three
+      real clashes were hiding there; leaving roll pinned at zero hid two more.
+      46 pairs &times; 180 cases, all clear.</p>
+    <p>Servo bodies are drawn to DS3225MG dimensions. The 49.5&nbsp;mm ear
+      spacing is confirmed against its drawing; the horn's own bolt circle is
+      assumed at 15&nbsp;mm and is the one figure still worth calipers before
+      you commit to twelve.</p>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const cv=$("#gl");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const LAYERS=[
+  {id:"chassis", label:"chassis",  color:0x8FA4BC, n:"1"},
+  {id:"roof",    label:"roof",     color:0x7D8CA3, n:"1"},
+  {id:"shoulder",label:"shoulder", color:0xB6BCC4, n:"4"},
+  {id:"thigh",   label:"thigh",    color:0x4A7FB5, n:"4"},
+  {id:"shank",   label:"shank",    color:0x4E9AA8, n:"4"},
+  {id:"crank",   label:"crank",    color:0xC8A33A, n:"4"},
+  {id:"pushrod", label:"pushrod",  color:0xC06A3A, n:"4"},
+  {id:"filler",  label:"fillers",  color:0xC4564A, n:"12"},
+  {id:"servo",   label:"servos",   color:0x6A7078, n:"12"},
+];
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,4/3,1,4000);
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+const root=new THREE.Group(); scene.add(root);
+const meshes={};
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x404450,0.85));
+const key=new THREE.DirectionalLight(0xffffff,0.75); key.position.set(-200,-320,420); scene.add(key);
+const fill=new THREE.DirectionalLight(0xffffff,0.3); fill.position.set(300,200,120); scene.add(fill);
+
+const HOME={az:-0.95,el:0.42,dist:620,tx:0,ty:0};
+const VIEWS={
+  iso:  {az:-0.95, el:0.42},
+  front:{az:0,     el:0.001},
+  side: {az:-Math.PI/2, el:0.001},
+  top:  {az:-Math.PI/2, el:1.5},
+};
+const cam=Object.assign({},HOME);
+let fitDist=620;
+
+function apply(){
+  const t=new THREE.Vector3(cam.tx,cam.ty,0);
+  camera.position.set(
+    t.x+cam.dist*Math.cos(cam.el)*Math.cos(cam.az),
+    t.y+cam.dist*Math.cos(cam.el)*Math.sin(cam.az),
+    t.z+cam.dist*Math.sin(cam.el));
+  camera.up.set(0,0,1);
+  camera.lookAt(t);
+}
+
+function parseSTL(buf){
+  const dv=new DataView(buf), n=dv.getUint32(80,true);
+  const pos=new Float32Array(n*9), nor=new Float32Array(n*9);
+  let o=84;
+  for(let i=0;i<n;i++){
+    const nx=dv.getFloat32(o,true),ny=dv.getFloat32(o+4,true),nz=dv.getFloat32(o+8,true);
+    o+=12;
+    for(let v=0;v<3;v++){
+      const k=i*9+v*3;
+      pos[k]=dv.getFloat32(o,true); pos[k+1]=dv.getFloat32(o+4,true); pos[k+2]=dv.getFloat32(o+8,true);
+      nor[k]=nx; nor[k+1]=ny; nor[k+2]=nz;
+      o+=12;
+    }
+    o+=2;
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute("position",new THREE.BufferAttribute(pos,3));
+  g.setAttribute("normal",new THREE.BufferAttribute(nor,3));
+  return g;
+}
+
+function buildUI(){
+  $("#layers").innerHTML=LAYERS.map(L=>
+    `<label class="layer"><input type="checkbox" id="L_${L.id}" checked>`+
+    `<i class="sw" style="background:#${L.color.toString(16).padStart(6,"0")}"></i>`+
+    `${L.label}<span class="n">${L.n}</span></label>`).join("");
+  LAYERS.forEach(L=>{
+    $("#L_"+L.id).addEventListener("change",e=>{
+      if(meshes[L.id]) meshes[L.id].visible=e.target.checked;
+    });
+  });
+}
+
+function b64buf(t){
+  const bin=atob(t.replace(/\s/g,""));
+  const u=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+  return u.buffer;
+}
+
+Promise.all(LAYERS.map(L=>
+  fetch(L.id+".txt").then(r=>r.text()).then(t=>({L,g:parseSTL(b64buf(t))}))
+)).then(parts=>{
+  const box=new THREE.Box3();
+  parts.forEach(({L,g})=>{
+    const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({
+      color:L.color,shininess:18,flatShading:false}));
+    meshes[L.id]=m; root.add(m);
+    g.computeBoundingBox(); box.union(g.boundingBox);
+  });
+  const c=box.getCenter(new THREE.Vector3());
+  root.position.set(-c.x,-c.y,-c.z);
+  const size=box.getSize(new THREE.Vector3());
+  fitDist=Math.max(size.x,size.y,size.z)*2.0;
+  cam.dist=HOME.dist=fitDist;
+  $("#loading").hidden=true;
+  buildUI(); resize(); tick();
+}).catch(e=>{ $("#loading").textContent="could not load geometry: "+e.message; });
+
+let drag=0,lx=0,ly=0;
+cv.addEventListener("pointerdown",e=>{drag=e.button===2?2:1;lx=e.clientX;ly=e.clientY;
+  cv.classList.add("drag");cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  const dx=e.clientX-lx, dy=e.clientY-ly;
+  if(drag===1){ cam.az-=dx*0.008;
+    cam.el=Math.max(-1.35,Math.min(1.35,cam.el+dy*0.006)); }
+  else { cam.tx-=dx*cam.dist*0.0016; cam.ty+=dy*cam.dist*0.0016; }
+  lx=e.clientX;ly=e.clientY;});
+cv.addEventListener("pointerup",()=>{drag=0;cv.classList.remove("drag");});
+cv.addEventListener("pointercancel",()=>{drag=0;cv.classList.remove("drag");});
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+cv.addEventListener("wheel",e=>{e.preventDefault();
+  cam.dist=Math.max(120,Math.min(2400,cam.dist*(1+Math.sign(e.deltaY)*0.1)));},{passive:false});
+
+document.querySelectorAll(".views button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    const v=VIEWS[b.dataset.view];
+    cam.az=v.az; cam.el=v.el; cam.tx=0; cam.ty=0; cam.dist=fitDist;
+  });
+});
+$("#reset").addEventListener("click",()=>{
+  Object.assign(cam,HOME); cam.dist=fitDist; cam.tx=0; cam.ty=0;
+});
+
+function resize(){
+  const w=cv.clientWidth||900, h=cv.clientHeight||675;
+  renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener("resize",resize);
+
+function tick(){
+  scene.background=new THREE.Color(css("--scene"));
+  apply(); renderer.render(scene,camera); requestAnimationFrame(tick);
+}
+})();
+</script>
