@@ -49,16 +49,22 @@ python3 cad/bom.py             # -> PARTS.txt
 ```
 cad/        OpenSCAD source, STLs, and the scripts that check them
 docs/       control plan, AI plan, design notes, images
+firmware/   Teensy project — scaffolded, nothing written yet
+host/       web control and, later, AI — empty
 reference/  the kinematic model the CAD dimensions come from
 viz/        browser viewer for the posed assembly
 PARTS.txt   print list + shopping list
 ```
 
-**No firmware.** The Teensy code is left to be written — see
-[`docs/CONTROL.md`](docs/CONTROL.md) for the architecture the mechanics
-were designed around and [`docs/AI_MODE.md`](docs/AI_MODE.md) for later.
-The Python here is the design model and the CAD checks, not the robot's
-control loop.
+**No firmware yet.** [`firmware/`](firmware) is an empty Teensy 4.1
+project: a build config, `config.h` filled in with the geometry and joint
+limits the CAD was built from, and one stub per piece. It compiles as it
+stands, so you can check your toolchain before writing anything.
+[`docs/CONTROL.md`](docs/CONTROL.md) is the spec it's aimed at,
+[`docs/AI_MODE.md`](docs/AI_MODE.md) is for later.
+
+The Python in this repo is the design model and the CAD checks, not the
+robot's control loop.
 
 ## Checking the CAD
 
