@@ -306,7 +306,7 @@ module shank() {
             // turns that into servo = knee + LINK_PHI.
             rotate([0, -LINK_PHI, 0])
                 translate([0, LINK_IN, 0]) rotate([-90,0,0]) rotate([0,0,90])
-                    arm(LINK_A, LINK_T, KNEE_R, LINK_TIP_R + 1, M3_INSERT);
+                    arm(LINK_A, LINK_T, KNEE_R, LINK_TIP_R + 1);
             collar(KNEE_COLLAR + CLEAR, SHANK_IN);
             // Tapered beam, not the hairline rod the sketch showed. The
             // sketch's shank leaned on a lever; this knee is direct
@@ -324,6 +324,16 @@ module shank() {
                 }
             translate([0, SHANK_IN + SHANK_T/2, -SHANK]) sphere(r = FOOT_R);
         }
+        // THE ROD'S PIVOT, cut here and not inside arm(). The beam's
+        // knee end is a disc of radius KNEE_R = 15.5 in the SAME plane
+        // as the rocker, and the pivot sits at LINK_A = 15.0 from the
+        // axis -- so a hole cut in the rocker first is filled straight
+        // back in by the beam, and 15.5 - 15.0 = 0.5 mm of it survives.
+        // It printed as a crescent with nothing to screw into.
+        rotate([0, -LINK_PHI, 0])
+            translate([0, LINK_IN, 0]) rotate([-90,0,0]) rotate([0,0,90])
+                translate([LINK_A, 0, -1])
+                    cylinder(d = M3_INSERT, h = LINK_T + 2);
         // The other half of the knee pin: an M4 insert the shoulder
         // bolt threads into. The shank is the part it is fixed to; the
         // thigh is the part it turns in.

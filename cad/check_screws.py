@@ -28,6 +28,13 @@ THREE THINGS GET CHECKED, per joint:
   bore     the counterbore, which must EXIST -- this one is inverted,
            it has to come back solid or the head has nowhere to sit.
 
+AND THE PIVOT HOLES, which are a different failure. A horn screw fails
+by being the wrong length; a pivot fails by not having a hole at all.
+The shank's rocker had its hole cut inside arm() and then filled back
+in by the beam's knee disc, unioned on top of it in the same plane --
+77 of 100 cubic millimetres of it. It printed as a crescent. So each
+pivot is probed against the part AS EXPORTED, after every union.
+
 Run:  python3 cad/check_screws.py
 """
 
@@ -64,6 +71,23 @@ JOINTS = [
 ]
 
 
+# part, hand, arm angle, plate plane, plate thickness, hole centre, hole
+PIVOTS = [
+    ("shank",       0, -P["LINK_PHI"], P["LINK_IN"], P["LINK_T"],
+     P["LINK_A"], P["M3_INSERT"], "rod -> rocker, M3 insert"),
+    ("shank_right", 1, -P["LINK_PHI"], P["LINK_IN"], P["LINK_T"],
+     P["LINK_A"], P["M3_INSERT"], "the same, other hand"),
+    ("crank",       0, 0.0, P["LINK_IN"], P["LINK_T"],
+     P["LINK_A"], P["M3_INSERT"], "crank -> rod, M3 insert"),
+    ("crank_right", 1, 0.0, P["LINK_IN"], P["LINK_T"],
+     P["LINK_A"], P["M3_INSERT"], "the same, other hand"),
+    ("pushrod",     0, 0.0, P["ROD_IN"], P["ROD_T"],
+     P["LINK_D"], P["PIVOT_ROD_D"], "rod, crank end, clearance"),
+    ("pushrod",     0, 0.0, P["ROD_IN"], P["ROD_T"],
+     0.0, P["PIVOT_ROD_D"], "rod, rocker end, clearance"),
+]
+
+
 def volume(path: Path) -> float:
     if not path.exists():
         return 0.0
@@ -94,6 +118,43 @@ def render(tmp: Path, joint: str, test: str, seat: float,
     if r.returncode != 0 and "top level object is empty" not in r.stderr.lower():
         raise SystemExit(f"openscad failed on {joint}/{test}:\n{r.stderr[-400:]}")
     return volume(out)
+
+
+def probe(tmp: Path, part: str, mir: int, phi: float, plane: float,
+          thick: float, length: float, dia: float) -> float:
+    out = tmp / f"pivot_{part}_{length:.0f}.stl"
+    if out.exists():
+        out.unlink()
+    stl = CAD / "stl" / f"{part}.stl"
+    if not stl.exists():
+        raise SystemExit(f"{stl} is missing -- run cad/export.sh first")
+    r = subprocess.run(
+        ["openscad", "-o", str(out), "--export-format=binstl",
+         "-D", f'STL="{stl}"', "-D", f"MIR={mir}", "-D", f"PHI={phi}",
+         "-D", f"PLANE={plane}", "-D", f"THICK={thick}",
+         "-D", f"L={length}", "-D", f"D={dia}",
+         str(CAD / "pivot_test.scad")],
+        capture_output=True, text=True)
+    if r.returncode != 0 and "top level object is empty" not in r.stderr.lower():
+        raise SystemExit(f"openscad failed on {part}:\n{r.stderr[-400:]}")
+    return volume(out) * 1000.0      # mm3
+
+
+def pivots(tmp: Path) -> list[tuple[str, str]]:
+    print("\n\nPivot holes: is there a hole there at all?\n")
+    print(f"{'part':<14}{'hole':>7}{'blocked mm3':>14}   verdict")
+    print("-" * 76)
+    bad = []
+    for part, mir, phi, plane, thick, length, dia, note in PIVOTS:
+        blocked = probe(tmp, part, mir, phi, plane, thick, length, dia)
+        ok = blocked < 0.01
+        if not ok:
+            bad.append((part, f"{blocked:.1f} mm3 of material in the "
+                              f"{dia:.1f} mm hole -- {note}"))
+        print(f"{part:<14}{dia:>7.1f}{blocked:>14.2f}   "
+              f"{'clear' if ok else 'BLOCKED'}  {note}")
+    print("-" * 76)
+    return bad
 
 
 def main() -> None:
@@ -130,7 +191,8 @@ def main() -> None:
                   f"{bite:>7.1f}{shank:>8.3f}{head:>8.3f}"
                   f"{'ok' if seat_ok else 'MISS':>8}   "
                   f"{'ok' if ok else 'PROBLEM'}  {note}")
-    print("-" * 76)
+        print("-" * 76)
+        bad += pivots(tmp)
     if bad:
         print()
         for joint, why in bad:
@@ -138,6 +200,7 @@ def main() -> None:
         sys.exit(1)
     print("\nEvery horn screw clears its hole, seats on its face, and lands")
     print(f"inside the horn's {HORN_TH:.1f} mm without reaching the servo.")
+    print("Every linkage pivot has an open hole after the last union.")
 
 
 if __name__ == "__main__":

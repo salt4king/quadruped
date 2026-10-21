@@ -8,14 +8,14 @@ chassis_rear        1    133.8    85.0     85.0   143 x 152; laps under the fron
 shoulder            4     90.8    57.7    230.7   symmetric in Z -- one print, turned over for the right
 thigh               2     76.5    48.6     97.1   LEFT. Carries the knee servo and the knee bearing
 thigh_right         2     76.5    48.6     97.1   RIGHT. Mirrored; it has no mirror plane of its own
-shank               2     27.9    17.7     35.4   LEFT. Beam, rocker lug and foot in one
-shank_right         2     27.9    17.7     35.4   RIGHT. 99.0% self-overlapping, and still not the same part
+shank               2     27.8    17.7     35.3   LEFT. Beam, rocker lug and foot in one
+shank_right         2     27.8    17.7     35.3   RIGHT. 99.0% self-overlapping, and still not the same part
 crank               2      8.4     5.3     10.7   LEFT. On the knee servo's horn
 crank_right         2      8.4     5.3     10.7   RIGHT. The hub's D-flat does not survive a reflection
 pushrod             4      3.2     2.0      8.1   crank tip to rocker tip; symmetric, one print
 filler             12      5.4     3.5     41.4   closes every servo pocket -- one part, all three mounts
 roof                1     38.4    24.4     24.4   snaps over the rim; print it upside down, no support
-                               printed    769.0 g   PETG at 50% effective
+                               printed    768.8 g   PETG at 50% effective
 
 ==============================================================================
   HOW EACH JOINT IS MADE
