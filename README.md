@@ -3,11 +3,7 @@
 A 3D-printed walking robot dog. Twelve servos, three per leg, direct
 drive at the hip and a parallelogram linkage at the knee.
 
-![The assembly, isometric](docs/img/assembly-iso.png)
-
-Every part sits where the kinematic model puts it — the renders here are
-the posed assembly itself, generated from the same source as the STLs,
-not a drawing of it.
+![The assembly](docs/img/assembly-iso.png)
 
 | | |
 |---|---|
@@ -20,61 +16,51 @@ not a drawing of it.
 
 ![Side elevation](docs/img/assembly-side.png)
 
+One leg from the outside — roll and pitch servos at the hip, the knee
+servo riding on the thigh, and the gold crank it drives the shank with:
+
+![One leg](docs/img/leg-detail.png)
+
 ![Plan view](docs/img/assembly-top.png)
 
-## What's here
+## Build it
 
-```
-cad/          OpenSCAD source, and the checkers that verify it
-cad/stl/      printable parts
-docs/         control architecture, AI plan, design notes, images
-reference/    the kinematic model the CAD is generated from
-viz/          a browser viewer for the posed assembly
-PARTS.txt     everything to print and everything to buy
-```
+Everything to print and everything to buy is in
+[`PARTS.txt`](PARTS.txt), with the fastener for every joint. Three
+things to know before you order:
 
-**There is no firmware here.** The controller is left to be written
-against the Teensy — see [`docs/CONTROL.md`](docs/CONTROL.md) for the
-architecture the mechanics were designed around, and
-[`docs/AI_MODE.md`](docs/AI_MODE.md) for what comes after.
+- **Three parts are handed** — thigh, shank and crank. 2 + 2 of each.
+  They look symmetric and are not.
+- **Heat-set inserts go by outside diameter, not thread.** M3 inserts
+  come in 4.0 and 4.6 mm OD; these holes want 4.6. A 4.0 spins.
+- **The chassis prints in two halves** and bolts together. 280 mm does
+  not fit on a 235 mm bed.
 
-The Python in `reference/` is not the robot's control code. It is the
-design model: closed-form IK, a gait generator and a load solver, used
-to size the parts and prove the geometry before anything was printed.
-`cad/sync_params.py` reads it and emits the dimensions the CAD builds
-from, so the model and the mechanics cannot disagree about a link length.
-
-## Building it
-
-Start with [`PARTS.txt`](PARTS.txt) — every printed part with its
-quantity and orientation, every joint with the fastener that makes it,
-and everything to order. It is generated from the geometry by
-`cad/bom.py`, so the screw lengths are measured off the model rather
-than typed.
-
-Three things worth knowing before ordering:
-
-- **Three parts are handed.** Thigh, shank and crank have no mirror
-  plane, so it is 2 + 2 of each. The shank is 99.0% self-overlapping and
-  the crank 95.2% — they *look* symmetric and are not.
-- **Heat-set inserts are specified by outside diameter, not thread.** M3
-  inserts come in 4.0 and 4.6 mm OD; these holes want 4.6. A 4.0 insert
-  drops into a 4.0 hole and spins.
-- **The chassis is split** into two halves with a bolted lap joint,
-  because 280 mm does not fit on a 235 mm bed.
-
-## Regenerating
+STLs are in [`cad/stl/`](cad/stl). To regenerate them:
 
 ```bash
 python3 cad/sync_params.py     # kinematics -> cad/params.scad
 bash    cad/export.sh          # -> cad/stl/*.stl
-python3 cad/bom.py             # -> the parts list
+python3 cad/bom.py             # -> PARTS.txt
 ```
 
-## Checking
+## What's here
 
-The CAD is verified rather than eyeballed. Each of these has caught a
-real bug:
+```
+cad/        OpenSCAD source, STLs, and the scripts that check them
+docs/       control plan, AI plan, design notes, images
+reference/  the kinematic model the CAD dimensions come from
+viz/        browser viewer for the posed assembly
+PARTS.txt   print list + shopping list
+```
+
+**No firmware.** The Teensy code is left to be written — see
+[`docs/CONTROL.md`](docs/CONTROL.md) for the architecture the mechanics
+were designed around and [`docs/AI_MODE.md`](docs/AI_MODE.md) for later.
+The Python here is the design model and the CAD checks, not the robot's
+control loop.
+
+## Checking the CAD
 
 ```bash
 python3 cad/check_fit.py        # 46 part pairs x 180 poses
@@ -85,25 +71,14 @@ python3 cad/check_walls.py      # thickness, bending, torsion, journals
 python3 cad/check_clearance.py  # exact mm between moving parts
 ```
 
-`check_fit` is the slow one — every pair at every pose, about twenty
-minutes. It is also the one that found the shank reaching the
-knee-servo bracket at full fold, which nothing else would have.
+`check_fit` takes about twenty minutes and is the one that found the
+shank hitting the knee bracket at full fold.
 
-Three of these need `numpy` and `scipy`; the rest are stdlib only.
-
-## Design notes
-
-Why a parallelogram instead of a general four-bar, why the roll servo
-lies flat, what the journals are for: [`docs/DESIGN-NOTES.md`](docs/DESIGN-NOTES.md),
-and the long-form version in the viewer.
-
-```bash
-cd viz/robot3d && python3 -m http.server 8000
-```
+Why a parallelogram, why the roll servo lies flat, what the journals are
+for: [`docs/DESIGN-NOTES.md`](docs/DESIGN-NOTES.md).
 
 ## Status
 
-Mechanically complete and verified; nothing has been assembled yet. Two
-dimensions are still assumptions rather than measurements — the servo
-horn's bolt circle (15 mm) and the M4 insert pilot — and both are called
-out in `PARTS.txt`.
+Verified in CAD, not yet assembled. Two numbers are still assumptions —
+the servo horn's bolt circle (15 mm) and the M4 insert pilot — both
+flagged in `PARTS.txt`.
