@@ -20,10 +20,11 @@ PLANE = 0;    // inboard face of the arm's plate
 THICK = 0;    // plate thickness
 L     = 0;    // hole centre, out from the arm's own axis
 D     = 0;    // nominal hole
+ZOFF  = 0;    // down the part, for a hole that is not at the part's origin
 
 intersection() {
     import(STL);
-    mirror([0, MIR, 0]) rotate([0, PHI, 0])
+    translate([0, 0, ZOFF]) mirror([0, MIR, 0]) rotate([0, PHI, 0])
         translate([0, PLANE, 0]) rotate([-90, 0, 0]) rotate([0, 0, 90])
             translate([L, 0, -1])
                 cylinder(d = D - 0.4, h = THICK + 2, $fn = 64);

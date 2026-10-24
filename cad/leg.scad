@@ -211,7 +211,7 @@ module thigh() {
         // thigh so the joint still turns, exactly like the linkage
         // pivots.
         translate([0,0,-THIGH]) translate([0, THIGH_IN - 2, 0]) rotate([-90,0,0])
-            cylinder(d = M4_CLEAR, h = KNEE_COLLAR - THIGH_IN + 4);
+            cylinder(d = KNEE_CLEAR_D, h = KNEE_COLLAR - THIGH_IN + 4);
         translate([0,0,-THIGH]) bore(KNEE_COLLAR - CLEAR, SHANK_IN + 1);
     }
 }

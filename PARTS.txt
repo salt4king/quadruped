@@ -6,8 +6,8 @@ part              off   cm3 ea    g ea  g total   note
 chassis_front       1    146.5    93.0     93.0   167 x 152; the roll servo mounts are part of it
 chassis_rear        1    133.8    85.0     85.0   143 x 152; laps under the front half
 shoulder            4     90.8    57.7    230.7   symmetric in Z -- one print, turned over for the right
-thigh               2     76.5    48.6     97.1   LEFT. Carries the knee servo and the knee bearing
-thigh_right         2     76.5    48.6     97.1   RIGHT. Mirrored; it has no mirror plane of its own
+thigh               2     76.4    48.5     97.1   LEFT. Carries the knee servo and the knee bearing
+thigh_right         2     76.4    48.5     97.1   RIGHT. Mirrored; it has no mirror plane of its own
 shank               2     27.8    17.7     35.3   LEFT. Beam, rocker lug and foot in one
 shank_right         2     27.8    17.7     35.3   RIGHT. 99.0% self-overlapping, and still not the same part
 crank               2      8.4     5.3     10.7   LEFT. On the knee servo's horn
@@ -15,7 +15,7 @@ crank_right         2      8.4     5.3     10.7   RIGHT. The hub's D-flat does n
 pushrod             4      3.2     2.0      8.1   crank tip to rocker tip; symmetric, one print
 filler             12      5.4     3.5     41.4   closes every servo pocket -- one part, all three mounts
 roof                1     38.4    24.4     24.4   snaps over the rim; print it upside down, no support
-                               printed    768.8 g   PETG at 50% effective
+                               printed    768.7 g   PETG at 50% effective
 
 ==============================================================================
   HOW EACH JOINT IS MADE
@@ -35,7 +35,7 @@ roof                1     38.4    24.4     24.4   snaps over the rim; print it u
 
   thigh -> shank (the knee)   x4
       1x M4 shoulder bolt, 5 mm dia x 10 mm
-      plain shank turns in the thigh, threads into an M4 insert in the shank
+      NOT a plain screw. The bearing is the shank's 36 mm collar turning in the thigh's bore; the bolt only stops it walking out sideways. Its 10 mm shoulder crosses 8.3 mm of thigh, so 1.7 mm of it stands past -- that is end float. Fill it with M5 washers over the shoulder or the knee rattles
 
   crank -> pushrod   x4
       1x M3 shoulder bolt, 4 mm dia x 6 mm
@@ -65,6 +65,8 @@ roof                1     38.4    24.4     24.4   snaps over the rim; print it u
      6   M3 x 12 socket cap + M3 nut           the chassis lap joint, through both halves
      8   M3 shoulder bolt, 4 mm dia x 6 mm     linkage pivots, both ends of each rod
      4   M4 shoulder bolt, 5 mm dia x 10 mm    the knee pins
+     8   M4 washer                             over the 4 mm shoulders, under the head
+     8   M5 washer                             over the 5 mm knee shoulders. Two a side fills the 1.7 mm of float
     56   M3 heat-set insert, 4.6 mm OD         servo mounts and linkage pivots. The hole is 4.0 -- buy the OD that wants it
      4   M4 heat-set insert, 6.1-6.3 mm OD     knee pins, in the shanks. The hole is 5.6
     12   DS3225 servo, 25 kg.cm                or any standard-size 25 kg.cm equivalent

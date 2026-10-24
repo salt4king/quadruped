@@ -172,6 +172,17 @@ ROD_T     = 5.0;     // pushrod thickness
 PIVOT_BOLT_D   = 4.0;   // the shoulder itself
 PIVOT_ROD_D    = 4.2;   // clearance for it in the rod
 PIVOT_INSERT_H = 6.0;
+// THE KNEE PIN is the same idea one size up, but the bolt is not
+// the bearing here -- the shank's 36 mm collar running in the
+// thigh's bore is. The pin only stops the shank walking out
+// sideways, so its hole can be loose, and being loose is better
+// than a 5 mm shoulder jamming in a hole that printed 4.9.
+//
+// It was M4_CLEAR = 4.5 until 2026-10-23, which is clearance for
+// an M4 THREAD. The bolt's shoulder is 5 mm. It would not have
+// gone in at all.
+KNEE_BOLT_D  = 5.0;   // the shoulder itself
+KNEE_CLEAR_D = 5.4;   // clearance for it in the thigh
 PIVOT_D   = 3.4;    // M3 clearance, where something IS meant to clamp
 CRANK_SWEEP = [-157.5, -22.5];  // from the thigh line
 

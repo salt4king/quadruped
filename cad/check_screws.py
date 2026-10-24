@@ -71,20 +71,27 @@ JOINTS = [
 ]
 
 
-# part, hand, arm angle, plate plane, plate thickness, hole centre, hole
+# part, hand, arm angle, plate plane, plate thickness, hole centre, hole,
+# how far down the part the hole sits
 PIVOTS = [
     ("shank",       0, -P["LINK_PHI"], P["LINK_IN"], P["LINK_T"],
-     P["LINK_A"], P["M3_INSERT"], "rod -> rocker, M3 insert"),
+     P["LINK_A"], P["M3_INSERT"], 0.0, "rod -> rocker, M3 insert"),
     ("shank_right", 1, -P["LINK_PHI"], P["LINK_IN"], P["LINK_T"],
-     P["LINK_A"], P["M3_INSERT"], "the same, other hand"),
+     P["LINK_A"], P["M3_INSERT"], 0.0, "the same, other hand"),
     ("crank",       0, 0.0, P["LINK_IN"], P["LINK_T"],
-     P["LINK_A"], P["M3_INSERT"], "crank -> rod, M3 insert"),
+     P["LINK_A"], P["M3_INSERT"], 0.0, "crank -> rod, M3 insert"),
     ("crank_right", 1, 0.0, P["LINK_IN"], P["LINK_T"],
-     P["LINK_A"], P["M3_INSERT"], "the same, other hand"),
+     P["LINK_A"], P["M3_INSERT"], 0.0, "the same, other hand"),
     ("pushrod",     0, 0.0, P["ROD_IN"], P["ROD_T"],
-     P["LINK_D"], P["PIVOT_ROD_D"], "rod, crank end, clearance"),
+     P["LINK_D"], P["PIVOT_ROD_D"], 0.0, "rod, crank end, clearance"),
     ("pushrod",     0, 0.0, P["ROD_IN"], P["ROD_T"],
-     0.0, P["PIVOT_ROD_D"], "rod, rocker end, clearance"),
+     0.0, P["PIVOT_ROD_D"], 0.0, "rod, rocker end, clearance"),
+    # The knee pin is not in an arm, it is down at the end of the thigh.
+    # It was a 4.5 mm hole for a 5 mm shoulder until 2026-10-23.
+    ("thigh",       0, 0.0, P["THIGH_IN"], P["KNEE_COLLAR"] - P["THIGH_IN"],
+     0.0, P["KNEE_BOLT_D"], -P["THIGH"], "knee pin, shoulder through the thigh"),
+    ("thigh_right", 1, 0.0, P["THIGH_IN"], P["KNEE_COLLAR"] - P["THIGH_IN"],
+     0.0, P["KNEE_BOLT_D"], -P["THIGH"], "the same, other hand"),
 ]
 
 
@@ -121,8 +128,8 @@ def render(tmp: Path, joint: str, test: str, seat: float,
 
 
 def probe(tmp: Path, part: str, mir: int, phi: float, plane: float,
-          thick: float, length: float, dia: float) -> float:
-    out = tmp / f"pivot_{part}_{length:.0f}.stl"
+          thick: float, length: float, dia: float, zoff: float) -> float:
+    out = tmp / f"pivot_{part}_{length:.0f}_{zoff:.0f}.stl"
     if out.exists():
         out.unlink()
     stl = CAD / "stl" / f"{part}.stl"
@@ -132,7 +139,7 @@ def probe(tmp: Path, part: str, mir: int, phi: float, plane: float,
         ["openscad", "-o", str(out), "--export-format=binstl",
          "-D", f'STL="{stl}"', "-D", f"MIR={mir}", "-D", f"PHI={phi}",
          "-D", f"PLANE={plane}", "-D", f"THICK={thick}",
-         "-D", f"L={length}", "-D", f"D={dia}",
+         "-D", f"L={length}", "-D", f"D={dia}", "-D", f"ZOFF={zoff}",
          str(CAD / "pivot_test.scad")],
         capture_output=True, text=True)
     if r.returncode != 0 and "top level object is empty" not in r.stderr.lower():
@@ -141,12 +148,12 @@ def probe(tmp: Path, part: str, mir: int, phi: float, plane: float,
 
 
 def pivots(tmp: Path) -> list[tuple[str, str]]:
-    print("\n\nPivot holes: is there a hole there at all?\n")
+    print("\n\nPivot holes: is there a hole there, and is it big enough?\n")
     print(f"{'part':<14}{'hole':>7}{'blocked mm3':>14}   verdict")
     print("-" * 76)
     bad = []
-    for part, mir, phi, plane, thick, length, dia, note in PIVOTS:
-        blocked = probe(tmp, part, mir, phi, plane, thick, length, dia)
+    for part, mir, phi, plane, thick, length, dia, zoff, note in PIVOTS:
+        blocked = probe(tmp, part, mir, phi, plane, thick, length, dia, zoff)
         ok = blocked < 0.01
         if not ok:
             bad.append((part, f"{blocked:.1f} mm3 of material in the "

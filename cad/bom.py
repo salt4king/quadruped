@@ -116,6 +116,10 @@ def horn_screw(outer: float, face: float, bore: float = 0.0) -> int:
 
 
 #   pitch  through the thigh, inboard face out to the hip collar's pocket
+# How far the knee bolt's shoulder has to reach: the thigh's inboard face
+# out to the shank's collar. Anything left over is end float.
+THIGH_SPAN = P["KNEE_COLLAR"] + P["CLEAR"] - P["THIGH_IN"]
+
 #   knee   through the crank, arm's inboard face out to the hub's pocket
 #   roll   through the shoulder's roll collar and its boss
 PITCH_SCREW = horn_screw(P["THIGH_IN"], P["PITCH_FACE"], bore=1.5)
@@ -142,7 +146,11 @@ JOINTS = [
      "same pattern, through the crank's hub"),
     ("thigh -> shank (the knee)", 4,
      "1x M4 shoulder bolt, 5 mm dia x 10 mm",
-     "plain shank turns in the thigh, threads into an M4 insert in the shank"),
+     f"NOT a plain screw. The bearing is the shank's {P['JOINT_BORE_D']:.0f} mm "
+     f"collar turning in the thigh's bore; the bolt only stops it walking out "
+     f"sideways. Its 10 mm shoulder crosses {THIGH_SPAN:.1f} mm of thigh, so "
+     f"{10 - THIGH_SPAN:.1f} mm of it stands past -- that is end float. Fill "
+     f"it with M5 washers over the shoulder or the knee rattles"),
     ("crank -> pushrod", 4,
      "1x M3 shoulder bolt, 4 mm dia x 6 mm",
      "rod turns on the shoulder, threads into an M3 insert in the crank"),
@@ -167,6 +175,10 @@ BUY = [
     ("M3 x 12 socket cap + M3 nut", 6, "the chassis lap joint, through both halves"),
     ("M3 shoulder bolt, 4 mm dia x 6 mm", 8, "linkage pivots, both ends of each rod"),
     ("M4 shoulder bolt, 5 mm dia x 10 mm", 4, "the knee pins"),
+    ("M4 washer", 8, "over the 4 mm shoulders, under the head"),
+    (f"M5 washer", 8,
+     f"over the 5 mm knee shoulders. Two a side fills the "
+     f"{10 - THIGH_SPAN:.1f} mm of float"),
     # STATE THE OUTSIDE DIAMETER, not just the thread. A heat-set insert
     # grips because the hole is UNDER its OD and the brass displaces
     # plastic into the knurl -- so the OD is the dimension that has to
